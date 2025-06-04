@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>F1 Racing Game</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      background-color: black;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // 풀스크린 캔버스 설정
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // 이미지 로드
+    const carImg = new Image();
+    carImg.src = 'car_ani.png';
+
+    const player = {
+      x: canvas.width / 2 - 50,
+      y: canvas.height - 160,
+      width: 100,
+      height: 100,
+      speed: 10
+    };
+
+    const obstacles = [];
+    let frameCount = 0;
+    let gameOver = false;
+
+    function drawPlayer() {
+      ctx.drawImage(carImg, player.x, player.y, player.width, player.height);
+    }
+
+    function createObstacle() {
+      const width = 80;
+      const x = Math.random() * (canvas.width - width);
+      obstacles.push({ x: x, y: -100, width: width, height: 100, speed: 6 });
+    }
+
+    function drawObstacles() {
+      ctx.fillStyle = 'red';
+      obstacles.forEach(ob => {
+        ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+      });
+    }
+
+    function moveObstacles() {
+      obstacles.forEach(ob => {
+        ob.y += ob.speed;
+      });
+    }
+
+    function checkCollision() {
+      obstacles.forEach(ob => {
+        if (
+          player.x < ob.x + ob.width &&
+          player.x + player.width > ob.x &&
+          player.y < ob.y + ob.height &&
+          player.y + player.height > ob.y
+        ) {
+          gameOver = true;
+        }
+      });
+    }
+
+    function gameLoop() {
+      if (gameOver) {
+        ctx.fillStyle = 'white';
+        ctx.font = '48px Pretendard';
+        ctx.textAlign = 'center';
+        ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+        return;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawPlayer();
+      moveObstacles();
+      drawObstacles();
+      checkCollision();
+
+      frameCount++;
+      if (frameCount % 80 === 0) {
+        createObstacle();
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft' && player.x > 0) {
+        player.x -= player.speed;
+      } else if (e.key === 'ArrowRight' && player.x + player.width < canvas.width) {
+        player.x += player.speed;
+      }
+    });
+
+    carImg.onload = () => {
+      gameLoop();
+    };
+  </script>
+</body>
+</html>
